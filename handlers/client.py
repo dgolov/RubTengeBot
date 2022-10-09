@@ -1,7 +1,8 @@
 from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
+from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher.filters.state import State, StatesGroup
-from keyboards import client_keyboard
+from keyboards import client_keyboard, expand_keyboard
 from logging_settings import logger
 from patterns import get_rub_expand
 
@@ -16,7 +17,7 @@ def check_reset(func):
     """ Декоратор для проверки сброса состояния """
     async def wrapper(message: types.Message, state: FSMContext):
         if any(command in message.text for command in ('Ввод_расходов', 'start', 'help')):
-            await message.answer('Действие отменено')
+            await message.answer('Действие отменено', reply_markup=client_keyboard)
             return await reset_state(message, state)
         else:
             return await func(message, state)
@@ -53,7 +54,7 @@ async def set_expend(message: types.Message):
     """ Convert rub to tng. State set sum """
     logger.info(f'[client - set_expend] {message.from_user.username} - message: {message.text}')
     await FSMExpend.sum.set()
-    await message.answer('Введи сумму в тенге')
+    await message.answer('Введи сумму в тенге', reply_markup=expand_keyboard)
 
 
 @check_reset
@@ -84,8 +85,22 @@ async def set_category(message: types.Message, state: FSMContext):
     await message.answer("Внесено в базу твоих расходов")
 
 
+async def cancel_handler(message: types.Message, state: FSMContext):
+    """ Convert rub to tng. State set category """
+    logger.info(f'[client - cancel_handler] {message.from_user.username} - cancel handler')
+    current_state = await state.get_state()
+    logger.info(f'[client - cancel_state] {message.from_user.username} - current_state - {current_state}')
+    if current_state is None:
+        return
+    await state.finish()
+    await message.answer("Действие отменено", reply_markup=client_keyboard)
+
+
 def register_handlers_client(dispatcher: Dispatcher):
     dispatcher.register_message_handler(send_welcome, commands=['start', 'help'])
+    dispatcher.register_message_handler(cancel_handler, commands=['cancel', 'отмена'], state='*')
+    dispatcher.register_message_handler(cancel_handler, Text(equals='отмена', ignore_case=True), state='*')
     dispatcher.register_message_handler(set_expend, commands=['Ввод_расходов'], state=None)
+    dispatcher.register_message_handler(set_expend, Text(equals='ввести расход', ignore_case=True), state=None)
     dispatcher.register_message_handler(convert_expend, state=FSMExpend.sum)
     dispatcher.register_message_handler(set_category, state=FSMExpend.category)
