@@ -86,7 +86,7 @@ async def set_category(message: types.Message, state: FSMContext):
 
 
 async def cancel_handler(message: types.Message, state: FSMContext):
-    """ Convert rub to tng. State set category """
+    """ Cancel current state """
     logger.info(f'[client - cancel_handler] {message.from_user.username} - cancel handler')
     current_state = await state.get_state()
     logger.info(f'[client - cancel_state] {message.from_user.username} - current_state - {current_state}')
