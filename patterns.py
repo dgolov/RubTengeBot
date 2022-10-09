@@ -52,7 +52,9 @@ def get_greeting():
 
     default_greetings = ['Привет!', 'Здравствуй!']
 
-    if time < 10:
+    if 0 < time < 6:
+        default_greetings.extend(['Доброй ночи!'])
+    elif 6 < time < 10:
         default_greetings.extend(['Доброе утро!'])
     elif time < 18:
         default_greetings.extend(["Добрый день!"])
@@ -70,7 +72,8 @@ async def mach_answer(message):
     if result:
         return result
 
-    if re.match(r'(^|\s)(привет|здравствуй(|те)|добр(ое|ый) (день|вечер|устро)|хай|хэллоу)', text):
+    if re.match(r'(^|\s)(привет|здравствуй(|те)|добр(ое|ый) (день|вечер|устро)|хай|хэллоу)', text) or \
+            any(smile in text for smile in ('👋', '🙋', '🤚', '✋', '🤝', '✌️')):
         greeting = get_greeting()
         if name:
             greeting += f', {name}'
