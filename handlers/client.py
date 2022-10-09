@@ -57,6 +57,17 @@ async def set_expend(message: types.Message):
     await message.answer('Введи сумму в тенге', reply_markup=expand_keyboard)
 
 
+async def cancel_handler(message: types.Message, state: FSMContext):
+    """ Cancel current state """
+    logger.debug(f'[client - cancel_handler] {message.from_user.username} - cancel handler')
+    current_state = await state.get_state()
+    logger.debug(f'[client - cancel_state] {message.from_user.username} - current_state - {current_state}')
+    if current_state is None:
+        return
+    await state.finish()
+    await message.answer("Действие отменено", reply_markup=client_keyboard)
+
+
 @check_reset
 async def convert_expend(message: types.Message, state: FSMContext):
     """ Convert rub to tng. State convert """
@@ -82,25 +93,14 @@ async def set_category(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['category'] = message.text
     await state.finish()
-    await message.answer("Внесено в базу твоих расходов")
-
-
-async def cancel_handler(message: types.Message, state: FSMContext):
-    """ Cancel current state """
-    logger.debug(f'[client - cancel_handler] {message.from_user.username} - cancel handler')
-    current_state = await state.get_state()
-    logger.debug(f'[client - cancel_state] {message.from_user.username} - current_state - {current_state}')
-    if current_state is None:
-        return
-    await state.finish()
-    await message.answer("Действие отменено", reply_markup=client_keyboard)
+    await message.answer("Внесено в базу твоих расходов", reply_markup=client_keyboard)
 
 
 def register_handlers_client(dispatcher: Dispatcher):
     dispatcher.register_message_handler(send_welcome, commands=['start', 'help'])
+    dispatcher.register_message_handler(set_expend, commands=['Ввод_расходов'], state=None)
     dispatcher.register_message_handler(cancel_handler, commands=['cancel', 'отмена'], state='*')
     dispatcher.register_message_handler(cancel_handler, Text(equals='отмена', ignore_case=True), state='*')
-    dispatcher.register_message_handler(set_expend, commands=['Ввод_расходов'], state=None)
     dispatcher.register_message_handler(set_expend, Text(equals='ввести расход', ignore_case=True), state=None)
     dispatcher.register_message_handler(convert_expend, state=FSMExpend.sum)
     dispatcher.register_message_handler(set_category, state=FSMExpend.category)
