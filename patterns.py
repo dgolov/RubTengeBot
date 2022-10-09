@@ -22,22 +22,28 @@ def get_rub_expand(message: str) -> tuple:
     except ValueError:
         return None, None, None
 
-    return rub, tng, f'Ты потратил {rub} рублей'
+    rub_txt = 'рублей'
+    if str(int(rub)).endswith('1'):
+        rub_txt = 'рубль'
+    elif str(int(rub))[-1] in ('2', '3', '4'):
+        rub_txt = 'рубля'
+
+    return rub, tng, f'Ты потратил {rub} {rub_txt}'
 
 
-def get_sum_from_message(message: str) -> int:
+def get_sum_from_message(message: str) -> float:
     """ Получение суммы расходов из сообщения """
     is_break = False
     result_sum = ''
     for char in message:
-        if char.isdigit():
+        if char.isdigit() or char in (',', '.'):
             is_break = True
             result_sum += char
             continue
         elif char.isalpha() and is_break:
             break
 
-    return int(result_sum)
+    return float(result_sum)
 
 
 def get_greeting():
