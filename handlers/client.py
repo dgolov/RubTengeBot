@@ -27,11 +27,11 @@ def check_reset(func):
 async def reset_state(message: types.Message, state: FSMContext):
     """ Сброс состояния при вооде команд с клавиатуры """
     if 'Ввод_расходов' in message.text:
-        logger.info(f'[client - reset_state] {message.from_user.username} - reset set_expend')
+        logger.debug(f'[client - reset_state] {message.from_user.username} - reset set_expend')
         await state.finish()
         return await set_expend(message)
     else:
-        logger.info(f'[client - reset_state] {message.from_user.username} - reset send_welcome')
+        logger.debug(f'[client - reset_state] {message.from_user.username} - reset send_welcome')
         await state.finish()
         return await send_welcome(message)
 
@@ -64,7 +64,7 @@ async def convert_expend(message: types.Message, state: FSMContext):
     move_on = True
     rub, tng, answer = get_rub_expand(message.text)
     if not answer:
-        logger.info(f'[client - set_expend] {message.from_user.username} - convert exception')
+        logger.warning('[client - set_expend] {message.from_user.username} - convert exception')
         move_on = False
         answer = 'Ошибка конвертации. Похоже ты не указал сумму.'
     await message.answer(answer)
@@ -87,9 +87,9 @@ async def set_category(message: types.Message, state: FSMContext):
 
 async def cancel_handler(message: types.Message, state: FSMContext):
     """ Cancel current state """
-    logger.info(f'[client - cancel_handler] {message.from_user.username} - cancel handler')
+    logger.debug(f'[client - cancel_handler] {message.from_user.username} - cancel handler')
     current_state = await state.get_state()
-    logger.info(f'[client - cancel_state] {message.from_user.username} - current_state - {current_state}')
+    logger.debug(f'[client - cancel_state] {message.from_user.username} - current_state - {current_state}')
     if current_state is None:
         return
     await state.finish()

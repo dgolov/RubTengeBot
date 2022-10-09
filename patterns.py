@@ -1,5 +1,6 @@
 import re
 import datetime
+from logging_settings import logger
 
 from random import choice
 
@@ -19,7 +20,8 @@ def get_rub_expand(message: str) -> tuple:
     try:
         tng = get_sum_from_message(message)
         rub = round(tng / 7.45, 2)
-    except ValueError:
+    except ValueError as e:
+        logger.error(f'[patterns - get_rub_expand] get_rub_expand exception: {e} ')
         return None, None, None
 
     rub_txt = 'рублей'
