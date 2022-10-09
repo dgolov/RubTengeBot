@@ -7,6 +7,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-storage = MemoryStorage
+storage = MemoryStorage()
 bot = Bot(token=os.environ.get("TELEGRAM_TOKEN"))
-dp = Dispatcher(bot)
+dp = Dispatcher(bot, storage=storage)
