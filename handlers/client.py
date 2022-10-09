@@ -13,8 +13,10 @@ class FSMExpend(StatesGroup):
 
 
 def check_reset(func):
+    """ Декоратор для проверки сброса состояния """
     async def wrapper(message: types.Message, state: FSMContext):
         if any(command in message.text for command in ('Ввод_расходов', 'start', 'help')):
+            await message.answer('Действие отменено')
             return await reset_state(message, state)
         else:
             return await func(message, state)
