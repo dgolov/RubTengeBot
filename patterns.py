@@ -14,14 +14,15 @@ answer_dict = {
 }
 
 
-def get_rub_expand(message: str):
+def get_rub_expand(message: str) -> tuple:
     """ Конвертация тенге в рубли """
     try:
         tng = get_sum_from_message(message)
+        rub = round(tng / 7.45, 2)
     except ValueError:
-        return
+        return None, None, None
 
-    return f'Ты потратил {round(tng / 7.45, 2) } рублей'
+    return rub, tng, f'Ты потратил {rub} рублей'
 
 
 def get_sum_from_message(message: str) -> int:
@@ -59,7 +60,7 @@ async def mach_answer(message):
     text = message.text.lower()
     name = message.from_user.first_name
 
-    result = get_rub_expand(message=text)
+    rub, tng, result = get_rub_expand(message=text)
     if result:
         return result
 
