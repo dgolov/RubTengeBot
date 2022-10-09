@@ -1,4 +1,5 @@
 import logging.config
+import os
 
 
 log_config = {
@@ -17,7 +18,7 @@ log_config = {
         "file_handler": {
             "class": "logging.FileHandler",
             "formatter": "formatter",
-            "filename": 'app.log'
+            "filename": os.environ.get("LOGGING_PATH", None)
         },
     },
     "loggers": {
