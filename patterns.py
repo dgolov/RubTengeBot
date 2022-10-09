@@ -52,16 +52,16 @@ def get_greeting():
     """ Приветствие (На случай если кто то захочет здороваться с ботом) """
     time = datetime.datetime.now().hour
 
-    default_greetings = ['Привет!', 'Здравствуй!']
+    default_greetings = ['Привет', 'Здравствуй']
 
     if 0 < time < 6:
-        default_greetings.extend(['Доброй ночи!'])
+        default_greetings.extend(['Доброй ночи'])
     elif 6 < time < 10:
-        default_greetings.extend(['Доброе утро!'])
+        default_greetings.extend(['Доброе утро'])
     elif time < 18:
-        default_greetings.extend(["Добрый день!"])
+        default_greetings.extend(["Добрый день"])
     else:
-        default_greetings.extend(["Добрый вечер!"])
+        default_greetings.extend(["Добрый вечер"])
     return choice(default_greetings)
 
 
