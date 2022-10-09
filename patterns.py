@@ -19,7 +19,7 @@ def get_rub_expand(message: str):
     try:
         tng = get_sum_from_message(message)
     except ValueError:
-        return 'Укажи пожалуйста сумму в тенге'
+        return
 
     return f'Ты потратил {round(tng / 7.45, 2) } рублей'
 
@@ -58,6 +58,10 @@ async def mach_answer(message):
     """ Поиск дефолтных ответов """
     text = message.text.lower()
     name = message.from_user.first_name
+
+    result = get_rub_expand(message=text)
+    if result:
+        return result
 
     if re.match(r'(^|\s)(привет|здравствуй(|те)|добр(ое|ый) (день|вечер|устро)|хай|хэллоу)', text):
         greeting = get_greeting()
