@@ -2,7 +2,8 @@ from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher.filters.state import State, StatesGroup
-from keyboards import client_keyboard, expand_keyboard
+from create_bot import dp
+from keyboards import client_keyboard, expand_keyboard, inline_categories_keyboard
 from logging_settings import logger
 from patterns import get_rub_expand
 
@@ -83,7 +84,7 @@ async def convert_expend(message: types.Message, state: FSMContext):
         async with state.proxy() as data:
             data['sum'] = rub
         await FSMExpend.next()
-        await message.answer("На что ты потратил эти деньги?")
+        await message.answer("На что ты потратил эти деньги?", reply_markup=inline_categories_keyboard)
 
 
 @check_reset
@@ -94,6 +95,15 @@ async def set_category(message: types.Message, state: FSMContext):
         data['category'] = message.text
     await state.finish()
     await message.answer("Внесено в базу твоих расходов", reply_markup=client_keyboard)
+
+
+@dp.callback_query_handler(Text(startswith='категория'), state=FSMExpend.category)
+async def set_category_call(callback: types.CallbackQuery, state: FSMContext):
+    logger.info(f'[client - set_category] {callback.from_user.username} - message: {callback.data}')
+    async with state.proxy() as data:
+        data['category'] = callback.data
+    await state.finish()
+    await callback.message.answer('Внесено в базу твоих расходов', reply_markup=client_keyboard)
 
 
 def register_handlers_client(dispatcher: Dispatcher):
