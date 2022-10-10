@@ -13,11 +13,13 @@ class EngineSessionFactory:
         self.session = scoped_session(self.session_factory)
 
     def get_user_by_telegram_id(self, telegram_id):
+        """ Получить пользователя по telegram_id """
         with self.session() as session:
             ret = session.query(User).filter_by(telegram_id=telegram_id).first()
         return ret
 
     def create_new_user(self, message):
+        """ Внести нового пользователя в базу данных """
         user = User(name=message.from_user.username, telegram_id=int(message.from_user.id))
         with self.session() as session:
             try:
@@ -27,16 +29,19 @@ class EngineSessionFactory:
                 raise
 
     def get_all_categories(self):
+        """ Получения списка всех категорий расходов """
         with self.session() as session:
             ret = session.query(Category).all()
         return ret
 
     def get_category_by_slug(self, slug):
+        """ Получение категории по ключу """
         with self.session() as session:
             ret = session.query(Category).filter_by(slug=slug).first()
         return ret
 
     def set_cost(self, user_id, data):
+        """ Занести расход в базу данных """
         user = self.get_user_by_telegram_id(user_id)
         category = self.get_category_by_slug(data.get('category'))
         cost = Cost(
