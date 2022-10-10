@@ -105,7 +105,7 @@ async def set_category(message: types.Message, state: FSMContext):
     await message.answer("Внесено в базу твоих расходов", reply_markup=client_keyboard)
 
 
-@dp.callback_query_handler(Text(startswith='категория'), state=FSMExpend.category)
+@dp.callback_query_handler(Text(startswith='category'), state=FSMExpend.category)
 async def set_category_call(callback: types.CallbackQuery, state: FSMContext):
     logger.info(f'[client - set_category] {callback.from_user.username} - message: {callback.data}')
     async with state.proxy() as data:
