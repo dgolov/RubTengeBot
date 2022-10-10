@@ -1,10 +1,6 @@
 # coding: utf-8
-import uuid
-from sqlalchemy import Column, ForeignKey, String, Integer, Text, Sequence, Boolean, DateTime, BigInteger, Time, \
-    Float, REAL
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+from sqlalchemy import Column, ForeignKey, String, Integer, DateTime
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship
 
 
 Base = declarative_base()
@@ -23,3 +19,14 @@ class Category(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String)
+
+
+class Cost(Base):
+    __tablename__ = 'cost'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey('user.id'))
+    category_id = Column(Integer, ForeignKey('category.id'))
+    sum_rub = Column(Integer)
+    sum_tng = Column(Integer)
+    date = Column(DateTime)
