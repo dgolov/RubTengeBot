@@ -2,7 +2,7 @@ from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher.filters.state import State, StatesGroup
-from create_bot import dp
+from create_bot import dp, db_engine
 from keyboards import client_keyboard, expand_keyboard, inline_categories_keyboard
 from logging_settings import logger
 from patterns import get_rub_expand
@@ -42,7 +42,13 @@ async def reset_state(message: types.Message, state: FSMContext):
 
 async def send_welcome(message: types.Message):
     """ Welcome and help message """
-    logger.info(f'[client - send_welcome] {message.from_user.username} - message: {message.text}')
+    user = db_engine.get_user_by_telegram_id(message.from_user.id)
+    if not user:
+        db_engine.create_new_user(message)
+
+    logger.info(
+        f'[client - send_welcome] {message.from_user.id} - {message.from_user.username} - message: {message.text}'
+    )
     await message.reply(
         "Привет 👋\nЯ бот учета рассходов в Казахстане. Введи ссумму в тенге и я переведу ее в рубли."
         "\nЛибо воспользуйся командами с клавиатуры для более удобного взаимодействия. 👇👇👇"
