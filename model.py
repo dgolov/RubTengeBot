@@ -32,3 +32,11 @@ class Cost(Base):
     sum_rub = Column(Integer)
     sum_tng = Column(Integer)
     date = Column(DateTime)
+
+
+class Answer(Base):
+    __tablename__ = 'answer'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    type = Column(String)
+    text = Column(String)

@@ -1,9 +1,10 @@
+import re
+
 from datetime import datetime, timedelta
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
 
-from helpers import match_intent
-from model import User, Category, Cost
+from model import Answer, User, Category, Cost
 
 
 class EngineSessionFactory:
@@ -43,11 +44,17 @@ class EngineSessionFactory:
 
     def check_category(self, text):
         """ Вычисление актуальной категории из текста сообщения """
+
+        def match_intent(pattern):
+            """ Check patterns """
+            result = re.match(rf'{pattern}', text)
+            return result is not None
+
         categories = self.get_all_categories()
         other = None
 
         for item_category in categories:
-            if text.lower() in item_category.name.lower() or match_intent(pattern=item_category.pattern, text=text):
+            if text.lower() in item_category.name.lower() or match_intent(item_category.pattern):
                 return item_category
             if 'other' in item_category.slug:
                 other = item_category
@@ -73,3 +80,9 @@ class EngineSessionFactory:
                 session.commit()
             except Exception as e:
                 raise
+
+    def get_answer_list(self, type_answer):
+        """ Получение ответов по ключу """
+        with self.session() as session:
+            ret = session.query(Answer).filter_by(type=type_answer).all()
+        return ret

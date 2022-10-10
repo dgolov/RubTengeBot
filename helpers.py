@@ -2,22 +2,7 @@ import re
 import datetime
 
 from random import choice
-
-
-answer_dict = {
-    'how_are_you': [
-        'Спасибо, хорошо!', "Все хорошо!", "Хорошо!", "У меня все хорошо! :)", "Отлично", "Все супер :)",
-    ],
-    'default': [
-        'Я умею только переводить тенге в рубли.', 'Прости, я не пнимаю тебя.',
-    ]
-}
-
-
-def match_intent(pattern, text):
-    """ Check patterns """
-    result = re.match(rf'{pattern}', text)
-    return result is not None
+from config import db_engine
 
 
 def get_rub_expand(message: str) -> tuple:
@@ -86,7 +71,9 @@ async def mach_answer(message):
         return greeting
 
     elif re.match(r'как (дел|жизнь|поживаешь|сам|живешь|ты)', text):
-        return choice(answer_dict.get('how_are_you'))
+        answer = choice(db_engine.get_answer_list(type_answer='how_are_you'))
     else:
-        return choice(answer_dict.get('default'))
+        answer = choice(db_engine.get_answer_list(type_answer='default'))
+
+    return answer.text
 
