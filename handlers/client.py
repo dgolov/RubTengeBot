@@ -102,19 +102,27 @@ async def set_category(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data[message.from_user.id]['category'] = message.text
     await state.finish()
-    await set_cost(message.from_user.id, data[message.from_user.id])
-    await message.answer("Внесено в базу твоих расходов", reply_markup=client_keyboard)
+    try:
+        await set_cost(message.from_user.id, data[message.from_user.id])
+        await message.answer("Внесено в базу твоих расходов", reply_markup=client_keyboard)
+    except Exception as e:
+        logger.info(f'[client - set_category_call] {message.from_user.username} - Error: {e}')
+        await message.answer('Ошибка внесения расходов в базу данных... Сорян(', reply_markup=client_keyboard)
 
 
 @dp.callback_query_handler(Text(startswith='category'), state=FSMExpend.category)
 async def set_category_call(callback: types.CallbackQuery, state: FSMContext):
     """ Convert rub to tng. State set category callback """
-    logger.info(f'[client - set_category] {callback.from_user.username} - message: {callback.data}')
+    logger.info(f'[client - set_category_call] {callback.from_user.username} - message: {callback.data}')
     async with state.proxy() as data:
         data[callback.from_user.id]['category'] = callback.data
     await state.finish()
-    await set_cost(callback.from_user.id, data[callback.from_user.id])
-    await callback.message.answer('Внесено в базу твоих расходов', reply_markup=client_keyboard)
+    try:
+        await set_cost(callback.from_user.id, data[callback.from_user.id])
+        await callback.message.answer('Внесено в базу твоих расходов', reply_markup=client_keyboard)
+    except Exception as e:
+        logger.info(f'[client - set_category_call] {callback.from_user.username} - Error: {e}')
+        await callback.message.answer('Ошибка внесения расходов в базу данных... Сорян(', reply_markup=client_keyboard)
 
 
 async def set_cost(user_id, data):
