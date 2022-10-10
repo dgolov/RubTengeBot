@@ -28,11 +28,11 @@ def check_reset(func):
 async def reset_state(message: types.Message, state: FSMContext):
     """ Сброс состояния при вооде команд с клавиатуры """
     if 'Ввод_расходов' in message.text:
-        logger.debug(f'[client - reset_state] {message.from_user.username} - reset set_expend')
+        logger.debug(f'[reset_state] {message.from_user.id} - {message.from_user.username} - reset set_expend')
         await state.finish()
         return await set_expense(message)
     else:
-        logger.debug(f'[client - reset_state] {message.from_user.username} - reset send_welcome')
+        logger.debug(f'[reset_state] {message.from_user.id} - {message.from_user.username} - reset send_welcome')
         await state.finish()
         return await send_welcome(message)
 
@@ -46,9 +46,7 @@ async def send_welcome(message: types.Message):
     if not user:
         db_engine.create_new_user(message)
 
-    logger.info(
-        f'[client - send_welcome] {message.from_user.id} - {message.from_user.username} - message: {message.text}'
-    )
+    logger.info(f'[send_welcome] {message.from_user.id} - {message.from_user.username} - message: {message.text}')
     await message.reply(
         "Привет 👋\nЯ бот учета рассходов в Казахстане. Введи ссумму в тенге и я переведу ее в рубли."
         "\nЛибо воспользуйся командами с клавиатуры для более удобного взаимодействия. 👇👇👇"
@@ -59,16 +57,18 @@ async def send_welcome(message: types.Message):
 
 async def set_expense(message: types.Message):
     """ Convert rub to tng. State set sum """
-    logger.info(f'[client - set_expense] {message.from_user.username} - message: {message.text}')
+    logger.info(f'[set_expense] {message.from_user.id} - {message.from_user.username} - message: {message.text}')
     await FSMExpend.sum.set()
     await message.answer('Введи сумму в тенге', reply_markup=expand_keyboard)
 
 
 async def cancel_handler(message: types.Message, state: FSMContext):
     """ Cancel current state """
-    logger.debug(f'[client - cancel_handler] {message.from_user.username} - cancel handler')
+    logger.debug(f'[client - cancel_handler] {message.from_user.id} - {message.from_user.username} - cancel handler')
     current_state = await state.get_state()
-    logger.debug(f'[client - cancel_state] {message.from_user.username} - current_state - {current_state}')
+    logger.debug(
+        f'[cancel_state] {message.from_user.id} - {message.from_user.username} - current_state - {current_state}'
+    )
     if current_state is None:
         return
     await state.finish()
@@ -78,11 +78,11 @@ async def cancel_handler(message: types.Message, state: FSMContext):
 @check_reset
 async def convert_expense(message: types.Message, state: FSMContext):
     """ Convert rub to tng. State convert """
-    logger.info(f'[client - convert_expense] {message.from_user.username} - message: {message.text}')
+    logger.info(f'[convert_expense] {message.from_user.id} - {message.from_user.username} - message: {message.text}')
     move_on = True
     rub, tng, answer = get_rub_expand(message.text)
     if not answer:
-        logger.warning('[client - set_expense] {message.from_user.username} - convert exception')
+        logger.warning(f'[set_expense] {message.from_user.id} - {message.from_user.username} - convert exception')
         move_on = False
         answer = 'Ошибка конвертации. Похоже ты не указал сумму.'
     await message.answer(answer)
@@ -98,7 +98,7 @@ async def convert_expense(message: types.Message, state: FSMContext):
 @check_reset
 async def set_category(message: types.Message, state: FSMContext):
     """ Convert rub to tng. State set category """
-    logger.info(f'[client - set_category] {message.from_user.username} - message: {message.text}')
+    logger.info(f'[set_category] {message.from_user.id} - {message.from_user.username} - message: {message.text}')
     async with state.proxy() as data:
         data[message.from_user.id]['category'] = message.text
     await state.finish()
@@ -106,14 +106,16 @@ async def set_category(message: types.Message, state: FSMContext):
         await set_cost(message.from_user.id, data[message.from_user.id])
         await message.answer("Внесено в базу твоих расходов", reply_markup=client_keyboard)
     except Exception as e:
-        logger.info(f'[client - set_category_call] {message.from_user.username} - Error: {e}')
+        logger.info(f'[set_category_call] {message.from_user.id} - {message.from_user.username} - Error: {e}')
         await message.answer('Ошибка внесения расходов в базу данных... Сорян(', reply_markup=client_keyboard)
 
 
 @dp.callback_query_handler(Text(startswith='category'), state=FSMExpend.category)
 async def set_category_call(callback: types.CallbackQuery, state: FSMContext):
     """ Convert rub to tng. State set category callback """
-    logger.info(f'[client - set_category_call] {callback.from_user.username} - message: {callback.data}')
+    logger.info(
+        f'[set_category_call] {callback.from_user.id} - {callback.from_user.username} - message: {callback.data}'
+    )
     async with state.proxy() as data:
         data[callback.from_user.id]['category'] = callback.data
     await state.finish()
@@ -121,7 +123,7 @@ async def set_category_call(callback: types.CallbackQuery, state: FSMContext):
         await set_cost(callback.from_user.id, data[callback.from_user.id])
         await callback.message.answer('Внесено в базу твоих расходов', reply_markup=client_keyboard)
     except Exception as e:
-        logger.info(f'[client - set_category_call] {callback.from_user.username} - Error: {e}')
+        logger.info(f'[set_category_call] {callback.from_user.id} - {callback.from_user.username} - Error: {e}')
         await callback.message.answer('Ошибка внесения расходов в базу данных... Сорян(', reply_markup=client_keyboard)
 
 
@@ -129,9 +131,9 @@ async def set_cost(user_id, data):
     """ Save storage to database """
     try:
         db_engine.set_cost(user_id, data)
-        logger.info(f'[client - set_cost] {user_id} - data saved successfully')
+        logger.info(f'[set_cost] {user_id} - data saved successfully')
     except Exception as e:
-        logger.info(f'[client - set_cost] {user_id} - data saved failed. Error: {e}')
+        logger.info(f'[set_cost] {user_id} - data saved failed. Error: {e}')
 
 
 ####################################################

@@ -1,11 +1,10 @@
 from aiogram import executor
 from create_bot import dp
-from logging_settings import console_logger, logger
+from logging_settings import logger
 from handlers import client, other
 
 
 async def on_startup(_):
-    console_logger.info("Bot is online")
     logger.info("Bot is online")
 
 

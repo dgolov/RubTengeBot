@@ -24,15 +24,15 @@ log_config = {
     "loggers": {
         "log": {
             "handlers": ["file_handler"],
-            "level": "INFO",
+            "level": "DEBUG",
         },
         "console": {
             "handlers": ["console_handler"],
-            "level": "INFO",
+            "level": "DEBUG",
         }
     },
 }
 
 logging.config.dictConfig(log_config)
-logger = logging.getLogger('log')
-console_logger = logging.getLogger('console')
+logger_mode = 'console' if os.environ.get('DEBUG') else 'log'
+logger = logging.getLogger(logger_mode)
