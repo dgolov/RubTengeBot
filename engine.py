@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
 
@@ -29,3 +30,25 @@ class EngineSessionFactory:
         with self.session() as session:
             ret = session.query(Category).all()
         return ret
+
+    def get_category_by_slug(self, slug):
+        with self.session() as session:
+            ret = session.query(Category).filter_by(slug=slug).first()
+        return ret
+
+    def set_cost(self, user_id, data):
+        user = self.get_user_by_telegram_id(user_id)
+        category = self.get_category_by_slug(data.get('category'))
+        cost = Cost(
+            user_id=user.id,
+            category_id=category.id,
+            sum_rub=data.get('sum_rub'),
+            sum_tng=data.get('sum_tng'),
+            date=datetime.utcnow() + timedelta(hours=6)
+        )
+        with self.session() as session:
+            try:
+                session.add(cost)
+                session.commit()
+            except Exception as e:
+                raise
