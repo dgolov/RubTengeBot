@@ -89,7 +89,8 @@ async def convert_expense(message: types.Message, state: FSMContext):
     if move_on:
         async with state.proxy() as data:
             data[message.from_user.id] = {}
-            data[message.from_user.id]['sum'] = rub
+            data[message.from_user.id]['sum_rub'] = rub
+            data[message.from_user.id]['sum_tng'] = tng
         await FSMExpend.next()
         await message.answer("На что ты потратил эти деньги?", reply_markup=inline_categories_keyboard)
 
