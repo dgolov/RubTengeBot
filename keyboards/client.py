@@ -11,15 +11,13 @@ button_menu = KeyboardButton('/Меню')
 button_previous = KeyboardButton('/назад')
 button_cancel = KeyboardButton('/отмена')
 
+
 categories = db_engine.get_all_categories()
 
 inline_categories = []
 
 for category in categories:
-    inline_categories.append(
-        InlineKeyboardButton(text=category.name, callback_data=f'категория {category.name.lower()}')
-    )
-
+    inline_categories.append(InlineKeyboardButton(text=category.name, callback_data=category.slug))
 
 client_keyboard.add(button_expand).add(button_menu)
 expand_keyboard.add(button_cancel)
