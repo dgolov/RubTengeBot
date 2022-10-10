@@ -88,7 +88,8 @@ async def convert_expense(message: types.Message, state: FSMContext):
     await message.answer(answer)
     if move_on:
         async with state.proxy() as data:
-            data['sum'] = rub
+            data[message.from_user.id] = {}
+            data[message.from_user.id]['sum'] = rub
         await FSMExpend.next()
         await message.answer("На что ты потратил эти деньги?", reply_markup=inline_categories_keyboard)
 
@@ -98,7 +99,7 @@ async def set_category(message: types.Message, state: FSMContext):
     """ Convert rub to tng. State set category """
     logger.info(f'[client - set_category] {message.from_user.username} - message: {message.text}')
     async with state.proxy() as data:
-        data['category'] = message.text
+        data[message.from_user.id]['category'] = message.text
     await state.finish()
     await message.answer("Внесено в базу твоих расходов", reply_markup=client_keyboard)
 
@@ -107,7 +108,7 @@ async def set_category(message: types.Message, state: FSMContext):
 async def set_category_call(callback: types.CallbackQuery, state: FSMContext):
     logger.info(f'[client - set_category] {callback.from_user.username} - message: {callback.data}')
     async with state.proxy() as data:
-        data['category'] = callback.data
+        data[callback.from_user.id]['category'] = callback.data
     await state.finish()
     await callback.message.answer('Внесено в базу твоих расходов', reply_markup=client_keyboard)
 
