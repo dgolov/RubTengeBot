@@ -1,6 +1,5 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
-from logging_settings import logger
 
 from model import User
 
@@ -23,10 +22,5 @@ class EngineSessionFactory:
             try:
                 session.add(user)
                 session.commit()
-                logger.debug(
-                    f'[EngineSessionFactory - create_new_user] User {message.from_user.id} created successfully'
-                )
             except Exception as e:
-                logger.error(
-                    f'[EngineSessionFactory - create_new_user] Error to create user {message.from_user.id} - {e}'
-                )
+                raise

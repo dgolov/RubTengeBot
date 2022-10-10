@@ -30,7 +30,7 @@ async def reset_state(message: types.Message, state: FSMContext):
     if 'Ввод_расходов' in message.text:
         logger.debug(f'[client - reset_state] {message.from_user.username} - reset set_expend')
         await state.finish()
-        return await set_expend(message)
+        return await set_expense(message)
     else:
         logger.debug(f'[client - reset_state] {message.from_user.username} - reset send_welcome')
         await state.finish()
@@ -57,9 +57,9 @@ async def send_welcome(message: types.Message):
     )
 
 
-async def set_expend(message: types.Message):
+async def set_expense(message: types.Message):
     """ Convert rub to tng. State set sum """
-    logger.info(f'[client - set_expend] {message.from_user.username} - message: {message.text}')
+    logger.info(f'[client - set_expense] {message.from_user.username} - message: {message.text}')
     await FSMExpend.sum.set()
     await message.answer('Введи сумму в тенге', reply_markup=expand_keyboard)
 
@@ -76,13 +76,13 @@ async def cancel_handler(message: types.Message, state: FSMContext):
 
 
 @check_reset
-async def convert_expend(message: types.Message, state: FSMContext):
+async def convert_expense(message: types.Message, state: FSMContext):
     """ Convert rub to tng. State convert """
-    logger.info(f'[client - convert_expend] {message.from_user.username} - message: {message.text}')
+    logger.info(f'[client - convert_expense] {message.from_user.username} - message: {message.text}')
     move_on = True
     rub, tng, answer = get_rub_expand(message.text)
     if not answer:
-        logger.warning('[client - set_expend] {message.from_user.username} - convert exception')
+        logger.warning('[client - set_expense] {message.from_user.username} - convert exception')
         move_on = False
         answer = 'Ошибка конвертации. Похоже ты не указал сумму.'
     await message.answer(answer)
@@ -114,9 +114,9 @@ async def set_category_call(callback: types.CallbackQuery, state: FSMContext):
 
 def register_handlers_client(dispatcher: Dispatcher):
     dispatcher.register_message_handler(send_welcome, commands=['start', 'help'])
-    dispatcher.register_message_handler(set_expend, commands=['Ввод_расходов'], state=None)
+    dispatcher.register_message_handler(set_expense, commands=['Ввод_расходов'], state=None)
     dispatcher.register_message_handler(cancel_handler, commands=['cancel', 'отмена'], state='*')
     dispatcher.register_message_handler(cancel_handler, Text(equals='отмена', ignore_case=True), state='*')
-    dispatcher.register_message_handler(set_expend, Text(equals='ввести расход', ignore_case=True), state=None)
-    dispatcher.register_message_handler(convert_expend, state=FSMExpend.sum)
+    dispatcher.register_message_handler(set_expense, Text(equals='ввести расход', ignore_case=True), state=None)
+    dispatcher.register_message_handler(convert_expense, state=FSMExpend.sum)
     dispatcher.register_message_handler(set_category, state=FSMExpend.category)
