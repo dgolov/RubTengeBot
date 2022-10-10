@@ -20,6 +20,7 @@ class Category(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String)
     slug = Column(String)
+    pattern = Column(String)
 
 
 class Cost(Base):

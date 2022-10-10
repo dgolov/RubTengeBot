@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
 
+from helpers import match_intent
 from model import User, Category, Cost
 
 
@@ -40,16 +41,16 @@ class EngineSessionFactory:
             ret = session.query(Category).filter_by(slug=slug).first()
         return ret
 
-    def check_category(self, category):
+    def check_category(self, text):
         """ Вычисление актуальной категории из текста сообщения """
         categories = self.get_all_categories()
         other = None
 
-        for item_query in categories:
-            if category.lower() in item_query.name.lower():
-                return item_query
-            if 'other' in item_query.slug:
-                other = item_query
+        for item_category in categories:
+            if text.lower() in item_category.name.lower() or match_intent(pattern=item_category.pattern, text=text):
+                return item_category
+            if 'other' in item_category.slug:
+                other = item_category
         return other
 
     def set_cost(self, user_id, data):
