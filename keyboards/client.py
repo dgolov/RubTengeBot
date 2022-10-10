@@ -1,5 +1,5 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
-from create_bot import db_engine
+from config import db_engine
 
 
 client_keyboard = ReplyKeyboardMarkup(resize_keyboard=True)

@@ -2,10 +2,9 @@ from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher.filters.state import State, StatesGroup
-from create_bot import dp, db_engine
+from config import dp, db_engine, logger
+from helpers import get_rub_expand
 from keyboards import client_keyboard, expand_keyboard, inline_categories_keyboard
-from logging_settings import logger
-from patterns import get_rub_expand
 
 
 class FSMExpend(StatesGroup):

@@ -1,6 +1,5 @@
 from aiogram import executor
-from create_bot import dp
-from logging_settings import logger
+from config import dp, logger
 from handlers import client, other
 
 

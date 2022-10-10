@@ -1,7 +1,6 @@
 from aiogram import types, Dispatcher
-from create_bot import dp
-from logging_settings import logger
-from patterns import mach_answer
+from config import dp, logger
+from helpers import mach_answer
 
 
 async def echo(message: types.Message):
