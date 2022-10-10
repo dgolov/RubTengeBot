@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
 
-from model import User
+from model import User, Category, Cost
 
 
 class EngineSessionFactory:
@@ -24,3 +24,8 @@ class EngineSessionFactory:
                 session.commit()
             except Exception as e:
                 raise
+
+    def get_all_categories(self):
+        with self.session() as session:
+            ret = session.query(Category).all()
+        return ret
