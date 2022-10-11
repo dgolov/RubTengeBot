@@ -1,23 +1,13 @@
 from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
-from aiogram.dispatcher.filters.state import State, StatesGroup
 from config import dp, db_engine, logger
 from helpers import get_rub_expand
 from keyboards import client_keyboard, expand_keyboard, inline_categories_keyboard, statistic_keyboard
 
 from datetime import datetime, timedelta
 
-
-class FSMExpend(StatesGroup):
-    """ Cost states class """
-    sum = State()
-    category = State()
-
-
-class FSMStatistic(StatesGroup):
-    """ Statistic states class """
-    start = State()
+from handlers.states import FSMExpend, FSMStatistic
 
 
 def check_reset(func):
@@ -33,7 +23,7 @@ def check_reset(func):
 
 async def reset_state(message: types.Message, state: FSMContext):
     """ Сброс состояния при вооде команд с клавиатуры """
-    if 'Ввод_расходов' in message.text:
+    if any(command in message.text for command in ('Ввод_расходов', 'Статистика')):
         logger.debug(f'[reset_state] {message.from_user.id} - {message.from_user.username} - reset set_expend')
         await state.finish()
         return await set_expense(message)

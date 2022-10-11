@@ -2,7 +2,7 @@ import re
 import datetime
 
 from random import choice
-from config import db_engine
+from config import db_engine, logger
 
 
 def get_rub_expand(message: str) -> tuple:
@@ -11,6 +11,7 @@ def get_rub_expand(message: str) -> tuple:
         tng = get_sum_from_message(message)
         rub = round(tng / 7.45, 2)
     except ValueError as e:
+        logger.error(f'[get_rub_expand] Error: {e}')
         return None, None, None
 
     rub_txt = 'рублей'
@@ -76,4 +77,3 @@ async def mach_answer(message):
         answer = choice(db_engine.get_answer_list(type_answer='default'))
 
     return answer.text
-

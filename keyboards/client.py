@@ -33,4 +33,4 @@ statistic_keyboard.insert(button_statistic_all).insert(button_statistic_month).i
 inline_categories_keyboard = InlineKeyboardMarkup(row_width=2)
 
 for category in inline_categories:
-    inline_categories_keyboard.add(category)
+    inline_categories_keyboard.insert(category)

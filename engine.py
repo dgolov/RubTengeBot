@@ -20,7 +20,7 @@ class EngineSessionFactory:
             ret = session.query(User).filter_by(telegram_id=telegram_id).first()
         return ret
 
-    def create_new_user(self, message):
+    def create_new_user(self, message) -> None:
         """ Внести нового пользователя в базу данных """
         user = User(name=message.from_user.username, telegram_id=int(message.from_user.id))
         with self.session() as session:
@@ -30,7 +30,7 @@ class EngineSessionFactory:
             except Exception as e:
                 raise
 
-    def get_all_categories(self):
+    def get_all_categories(self) -> list:
         """ Получения списка всех категорий расходов """
         with self.session() as session:
             ret = session.query(Category).all()
@@ -60,7 +60,7 @@ class EngineSessionFactory:
                 other = item_category
         return other
 
-    def set_cost(self, user_id, data):
+    def set_cost(self, user_id, data) -> None:
         """ Занести расход в базу данных """
         category_data = data.get('category')
         user = self.get_user_by_telegram_id(user_id)
@@ -81,13 +81,18 @@ class EngineSessionFactory:
             except Exception as e:
                 raise
 
-    def get_answer_list(self, type_answer):
+    def get_answer_list(self, type_answer) -> list:
         """ Получение ответов по ключу """
         with self.session() as session:
             ret = session.query(Answer).filter_by(type=type_answer).all()
         return ret
 
     def get_statistics(self, telegram_user_id: int, period: dict = None) -> tuple:
+        """ Получение статистики
+        :param telegram_user_id: id пользователя телеграм
+        :param period: период отчета
+        :return: кортеж из суммы в тенге и суммы в рублях
+        """
         tng_sum = 0
         rub_sum = 0
         with self.session() as session:
@@ -101,4 +106,3 @@ class EngineSessionFactory:
                 tng_sum += cost.sum_tng
                 rub_sum += cost.sum_rub
         return tng_sum, rub_sum
-
