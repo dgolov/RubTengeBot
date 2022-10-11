@@ -2,7 +2,7 @@ from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
 from config import dp, db_engine, logger
-from helpers import get_rub_expand
+from helpers import get_rub_expand, get_statistic_message
 from keyboards import client_keyboard, expand_keyboard, inline_categories_keyboard, statistic_keyboard
 
 from datetime import datetime, timedelta
@@ -100,7 +100,7 @@ async def set_category(message: types.Message, state: FSMContext):
     await state.finish()
     try:
         await set_cost(message.from_user.id, data[message.from_user.id])
-        await message.answer("Внесено в базу твоих расходов", reply_markup=client_keyboard)
+        await message.answer("✅ Внесено в базу твоих расходов ✅", reply_markup=client_keyboard)
     except Exception as e:
         logger.info(f'[set_category_call] {message.from_user.id} - {message.from_user.username} - Error: {e}')
         await message.answer('Ошибка внесения расходов в базу данных... Сорян(', reply_markup=client_keyboard)
@@ -148,7 +148,7 @@ async def set_all_statistic_period(message: types.Message, state=FSMStatistic.st
     logger.debug(f'[set_all_statistic_period] {message.from_user.id} - statistic: {result}')
     await state.finish()
     await message.answer(
-        f"За все времяы потратил:\n{result[0]} тенге\n{result[1]} рублей",
+        f"За все время ты потратил: {get_statistic_message(result)}",
         reply_markup=client_keyboard
     )
 
@@ -173,7 +173,7 @@ async def set_month_statistic_period(message: types.Message, state=FSMStatistic.
     else:
         logger.debug(f'[set_month_statistic_period] {message.from_user.id} - statistic: {result}')
         await message.answer(
-            f"За текуший месяц потратил:\n{result[0]} тенге\n{result[1]} рублей",
+            f"За текуший месяц ты потратил: {get_statistic_message(result)}",
             reply_markup=client_keyboard
         )
     finally:
@@ -200,7 +200,7 @@ async def set_week_statistic_period(message: types.Message, state=FSMStatistic.s
     else:
         logger.debug(f'[set_week_statistic_period] {message.from_user.id} - statistic: {result}')
         await message.answer(
-            f"За текушую неделю потратил:\n{result[0]} тенге\n{result[1]} рублей",
+            f"За текушую неделю ты потратил: {get_statistic_message(result)}",
             reply_markup=client_keyboard
         )
     finally:
@@ -226,7 +226,7 @@ async def set_today_statistic_period(message: types.Message, state=FSMStatistic.
     else:
         logger.debug(f'[set_today_statistic_period] {message.from_user.id} - statistic: {result}')
         await message.answer(
-            f"За текуший день потратил:\n{result[0]} тенге\n{result[1]} рублей",
+            f"За текуший день ты потратил: {get_statistic_message(result)}",
             reply_markup=client_keyboard
         )
     finally:
@@ -255,7 +255,7 @@ async def set_yesterday_statistic_period(message: types.Message, state=FSMStatis
     else:
         logger.debug(f'[set_yesterday_statistic_period] {message.from_user.id} - statistic: {result}')
         await message.answer(
-            f"За вчерашниц день потратил:\n{result[0]} тенге\n{result[1]} рублей",
+            f"За вчерашниЙ день ты потратил: {get_statistic_message(result)}",
             reply_markup=client_keyboard
         )
     finally:

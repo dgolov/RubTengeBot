@@ -20,7 +20,7 @@ def get_rub_expand(message: str) -> tuple:
     elif str(int(rub))[-1] in ('2', '3', '4'):
         rub_txt = 'рубля'
 
-    return rub, tng, f'Ты потратил {rub} {rub_txt}'
+    return rub, tng, f'💵 Ты потратил {rub} {rub_txt} 💵'
 
 
 def get_sum_from_message(message: str) -> float:
@@ -77,3 +77,13 @@ async def mach_answer(message):
         answer = choice(db_engine.get_answer_list(type_answer='default'))
 
     return answer.text
+
+
+def get_statistic_message(result):
+    """ Формирование сообщения статистики """
+    message = f"\n{result.get('total')['tng_sum']} тенге\n{result.get('total')['rub_sum']} рублей\n"
+    message += "\n💰 💰 💰 💰 Категории:\n"
+    if result['categories']:
+        for category, sum_dict in result['categories'].items():
+            message += f"\n{category}: {sum_dict['tng_sum']} тенге = {sum_dict['rub_sum']} руб"
+    return message
