@@ -87,22 +87,37 @@ class EngineSessionFactory:
             ret = session.query(Answer).filter_by(type=type_answer).all()
         return ret
 
-    def get_statistics(self, telegram_user_id: int, period: dict = None) -> tuple:
+    def get_statistics(self, telegram_user_id: int, period: dict = None) -> dict:
         """ Получение статистики
         :param telegram_user_id: id пользователя телеграм
         :param period: период отчета
         :return: кортеж из суммы в тенге и суммы в рублях
         """
-        tng_sum = 0
-        rub_sum = 0
+        categories_dict = {}
+        statistics = {
+            'total': {
+                'tng_sum': 0,
+                'rub_sum': 0,
+            },
+            'categories': {}
+        }
         with self.session() as session:
-            user = session.query(User).filter_by(telegram_id=telegram_user_id).first()
+            user = self.get_user_by_telegram_id(telegram_id=telegram_user_id)
+            categories = self.get_all_categories()
+            for category in categories:
+                categories_dict[category.id] = category.name
+
             if period:
                 cost_query = session.query(Cost).filter_by(user_id=user.id).\
                     filter(Cost.date >= period.get('start'), Cost.date <= period.get('end')).all()
             else:
                 cost_query = session.query(Cost).filter_by(user_id=user.id).all()
             for cost in cost_query:
-                tng_sum += cost.sum_tng
-                rub_sum += cost.sum_rub
-        return tng_sum, rub_sum
+                statistics['total']['tng_sum'] += cost.sum_tng
+                statistics['total']['rub_sum'] += cost.sum_rub
+                if not statistics['categories'].get(categories_dict[cost.category_id], None):
+                    statistics['categories'][categories_dict[cost.category_id]] = {
+                        'tng_sum': cost.sum_tng,
+                        'rub_sum': cost.sum_rub,
+                    }
+        return statistics
