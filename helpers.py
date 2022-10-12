@@ -14,7 +14,7 @@ async def get_exchange_rate():
     url = os.environ.get('EXCHANGE_RATE_URL')
     async with aiohttp.ClientSession(trust_env=True) as session:
         async with session.get(url, ssl=False) as response:
-            logger.info(f"[get_exchange_rate] GET {url} - {response.status}")
+            logger.info(f"[get_exchange_rate] GET {url} - status code: {response.status}")
             exchange_rate = await response.text(encoding='utf-8')
             result_kz = json.loads(exchange_rate)['Valute']['KZT']
     return result_kz['Nominal'] / result_kz['Value']
