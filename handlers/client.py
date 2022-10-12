@@ -100,7 +100,9 @@ async def set_category(message: types.Message, state: FSMContext):
     await state.finish()
     try:
         await set_cost(message.from_user.id, data[message.from_user.id])
-        await message.answer("✅ Внесено в базу твоих расходов ✅", reply_markup=client_keyboard)
+        await message.answer(
+            f"✅ {data[message.from_user.id]['sum_rub']} руб внесено в базу твоих расходов ✅",
+            reply_markup=client_keyboard)
     except Exception as e:
         logger.info(f'[set_category_call] {message.from_user.id} - {message.from_user.username} - Error: {e}')
         await message.answer('Ошибка внесения расходов в базу данных... Сорян(', reply_markup=client_keyboard)
@@ -117,7 +119,10 @@ async def set_category_call(callback: types.CallbackQuery, state: FSMContext):
     await state.finish()
     try:
         await set_cost(callback.from_user.id, data[callback.from_user.id])
-        await callback.message.answer('Внесено в базу твоих расходов', reply_markup=client_keyboard)
+        await callback.message.answer(
+            f"✅ {data[callback.from_user.id]['sum_rub']} руб внесено в базу твоих расходов ✅",
+            reply_markup=client_keyboard
+        )
     except Exception as e:
         logger.info(f'[set_category_call] {callback.from_user.id} - {callback.from_user.username} - Error: {e}')
         await callback.message.answer('Ошибка внесения расходов в базу данных... Сорян(', reply_markup=client_keyboard)
