@@ -44,16 +44,19 @@ async def send_welcome(message: types.Message):
 
     logger.info(f'[send_welcome] {message.from_user.id} - {message.from_user.username} - message: {message.text}')
     await message.reply(
-        "Привет 👋\nЯ бот учета рассходов в Казахстане. Введи ссумму в тенге и я переведу ее в рубли."
-        "\nЛибо воспользуйся командами с клавиатуры для более удобного взаимодействия. 👇👇👇"
+        "Привет 👋\nЯ бот учета рассходов в республике Казахстане. Введи ссумму в тенге и я переведу ее в рубли. "
+        "\nЯ конвертирую валюту по официальному курсу, сорян, я не знаю почем ты меняешь налик..."
+        "\nТак же ты можешь воспользоваться командами с клавиатуры для записи расходов и вывода статистики. 👇👇👇"
         "\n🇰🇿 Алға Қазақстан! 🇰🇿",
         reply_markup=client_keyboard
     )
 
 
-async def set_expense(message: types.Message):
+async def set_expense(message: types.Message, state: FSMContext):
     """ Convert rub to tng. State set sum """
     logger.info(f'[set_expense] {message.from_user.id} - {message.from_user.username} - message: {message.text}')
+    async with state.proxy() as data:
+        data[message.from_user.id] = {}
     await FSMExpend.sum.set()
     await message.answer('Введи сумму в тенге', reply_markup=expand_keyboard)
 
@@ -67,6 +70,8 @@ async def cancel_handler(message: types.Message, state: FSMContext):
     )
     if current_state is None:
         return
+    async with state.proxy() as data:
+        data[message.from_user.id] = {}
     await state.finish()
     await message.answer("Действие отменено", reply_markup=client_keyboard)
 
@@ -84,11 +89,37 @@ async def convert_expense(message: types.Message, state: FSMContext):
     await message.answer(answer)
     if move_on:
         async with state.proxy() as data:
-            data[message.from_user.id] = {}
             data[message.from_user.id]['sum_rub'] = rub
             data[message.from_user.id]['sum_tng'] = tng
         await FSMExpend.next()
         await message.answer("На что ты потратил эти деньги?", reply_markup=inline_categories_keyboard)
+
+
+@check_reset
+async def how_handler_sum(message: types.Message, state: FSMContext):
+    logger.info(f'[how_handler_sum] {message.from_user.id} - {message.from_user.username} - message: {message.text}')
+
+    async with state.proxy() as data:
+        if not data[message.from_user.id].get('sum_rub', None):
+            data[message.from_user.id]['sum_rub'] = 1
+        else:
+            data[message.from_user.id]['sum_rub'] += 1
+        logger.info(
+            f"[how_handler_sum] {message.from_user.id} - {message.from_user.username} - "
+            f"retry {data[message.from_user.id]['sum_rub']}")
+
+        if data[message.from_user.id]['sum_rub'] == 3:
+            await state.finish()
+            keyboard = client_keyboard
+        else:
+            keyboard = expand_keyboard
+
+    message_dict = {
+        1: 'Ручками... Нажимай на циферки и введи сумму. Это не сложно.',
+        2: 'Просто набери цифры и все...',
+        3: 'Давай попробуем в другой раз',
+    }
+    await message.answer(message_dict.get(data[message.from_user.id]['sum_rub']), reply_markup=keyboard)
 
 
 @check_reset
@@ -276,6 +307,7 @@ def register_handlers_client(dispatcher: Dispatcher):
     dispatcher.register_message_handler(cancel_handler, commands=['cancel', 'отмена'], state='*')
     dispatcher.register_message_handler(cancel_handler, Text(equals='отмена', ignore_case=True), state='*')
     dispatcher.register_message_handler(set_expense, Text(equals='ввести расход', ignore_case=True), state=None)
+    dispatcher.register_message_handler(how_handler_sum, Text(equals='как', ignore_case=True), state=FSMExpend.sum)
     dispatcher.register_message_handler(convert_expense, state=FSMExpend.sum)
     dispatcher.register_message_handler(set_category, state=FSMExpend.category)
     dispatcher.register_message_handler(get_statistic, commands=['Статистика'], state=None)

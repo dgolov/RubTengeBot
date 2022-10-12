@@ -19,8 +19,12 @@ async def get_exchange_rate():
     return result_kz['Nominal'] / result_kz['Value']
 
 
-async def get_rub_expand(message: str) -> tuple:
-    """ Конвертация тенге в рубли """
+async def get_rub_expand(message: str, save: bool = True) -> tuple:
+    """ Конвертация тенге в рубли
+    :param message: сообщение пользователя
+    :param save: сохранение в бд. Если False, то будет только конвертация и будет выведено другое сообщение
+    :return: сумма в рублях, в тенге и ответное сообщение от бота
+    """
     try:
         exchange_rate = await get_exchange_rate()
         tng = get_sum_from_message(message)
@@ -35,7 +39,8 @@ async def get_rub_expand(message: str) -> tuple:
     elif str(int(rub))[-1] in ('2', '3', '4'):
         rub_txt = 'рубля'
 
-    return rub, tng, f'💵 Ты потратил {rub} {rub_txt} 💵'
+    result_message = f'💵 Ты потратил {rub} {rub_txt} 💵' if save else f'💵 Это будет {rub} {rub_txt} 💵'
+    return rub, tng, result_message
 
 
 def get_sum_from_message(message: str) -> float:
@@ -75,7 +80,7 @@ async def mach_answer(message):
     text = message.text.lower()
     name = message.from_user.first_name
 
-    rub, tng, result = await get_rub_expand(message=text)
+    rub, tng, result = await get_rub_expand(message=text, save=False)
     if result:
         return result
 
