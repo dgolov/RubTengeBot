@@ -76,7 +76,7 @@ async def convert_expense(message: types.Message, state: FSMContext):
     """ Convert rub to tng. State convert """
     logger.info(f'[convert_expense] {message.from_user.id} - {message.from_user.username} - message: {message.text}')
     move_on = True
-    rub, tng, answer = get_rub_expand(message.text)
+    rub, tng, answer = await get_rub_expand(message.text)
     if not answer:
         logger.warning(f'[set_expense] {message.from_user.id} - {message.from_user.username} - convert exception')
         move_on = False

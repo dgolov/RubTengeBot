@@ -1,15 +1,31 @@
-import re
+import asyncio
+import aiohttp
 import datetime
+import json
+import os
+import re
 
 from random import choice
 from config import db_engine, logger
 
 
-def get_rub_expand(message: str) -> tuple:
+async def get_exchange_rate():
+    """ Запрос в API курса валют для получения текущего курса тенге к рублю """
+    url = os.environ.get('EXCHANGE_RATE_URL')
+    async with aiohttp.ClientSession(trust_env=True) as session:
+        async with session.get(url, ssl=False) as response:
+            logger.info(f"[get_exchange_rate] GET {url} - {response.status}")
+            exchange_rate = await response.text(encoding='utf-8')
+            result_kz = json.loads(exchange_rate)['Valute']['KZT']
+    return result_kz['Nominal'] / result_kz['Value']
+
+
+async def get_rub_expand(message: str) -> tuple:
     """ Конвертация тенге в рубли """
     try:
+        exchange_rate = await get_exchange_rate()
         tng = get_sum_from_message(message)
-        rub = round(tng / 7.45, 2)
+        rub = round(tng / exchange_rate, 2)
     except ValueError as e:
         logger.error(f'[get_rub_expand] Error: {e}')
         return None, None, None
@@ -60,7 +76,7 @@ async def mach_answer(message):
     text = message.text.lower()
     name = message.from_user.first_name
 
-    rub, tng, result = get_rub_expand(message=text)
+    rub, tng, result = await get_rub_expand(message=text)
     if result:
         return result
 
