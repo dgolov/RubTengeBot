@@ -44,17 +44,11 @@ class EngineSessionFactory:
 
     def check_category(self, text):
         """ Вычисление актуальной категории из текста сообщения """
-
-        def match_intent(pattern):
-            """ Check patterns """
-            result = re.match(rf'{pattern}', text)
-            return result is not None
-
         categories = self.get_all_categories()
         other = None
 
         for item_category in categories:
-            if text.lower() in item_category.name.lower() or match_intent(item_category.pattern):
+            if text.lower() in item_category.name.lower() or match_intent(item_category.pattern, text):
                 return item_category
             if 'other' in item_category.slug:
                 other = item_category
@@ -121,3 +115,9 @@ class EngineSessionFactory:
                         'rub_sum': cost.sum_rub,
                     }
         return statistics
+
+
+def match_intent(pattern, text):
+    """ Check patterns """
+    result = re.match(rf'{pattern}', text)
+    return result is not None
