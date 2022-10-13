@@ -184,7 +184,7 @@ async def set_all_statistic_period(message: types.Message, state=FSMStatistic.st
     logger.debug(f'[set_all_statistic_period] {message.from_user.id} - statistic: {result}')
     await state.finish()
     await message.answer(
-        f"За все время ты потратил: {get_statistic_message(result)}",
+        f"За все время: {get_statistic_message(result)}",
         reply_markup=client_keyboard
     )
 
@@ -209,7 +209,7 @@ async def set_month_statistic_period(message: types.Message, state=FSMStatistic.
     else:
         logger.debug(f'[set_month_statistic_period] {message.from_user.id} - statistic: {result}')
         await message.answer(
-            f"За текуший месяц ты потратил: {get_statistic_message(result)}",
+            f"За текуший месяц {get_statistic_message(result)}",
             reply_markup=client_keyboard
         )
     finally:
@@ -236,7 +236,7 @@ async def set_week_statistic_period(message: types.Message, state=FSMStatistic.s
     else:
         logger.debug(f'[set_week_statistic_period] {message.from_user.id} - statistic: {result}')
         await message.answer(
-            f"За текушую неделю ты потратил: {get_statistic_message(result)}",
+            f"За текушую неделю {get_statistic_message(result)}",
             reply_markup=client_keyboard
         )
     finally:
@@ -262,7 +262,7 @@ async def set_today_statistic_period(message: types.Message, state=FSMStatistic.
     else:
         logger.debug(f'[set_today_statistic_period] {message.from_user.id} - statistic: {result}')
         await message.answer(
-            f"За текуший день ты потратил: {get_statistic_message(result)}",
+            f"За текуший день {get_statistic_message(result)}",
             reply_markup=client_keyboard
         )
     finally:
@@ -291,7 +291,7 @@ async def set_yesterday_statistic_period(message: types.Message, state=FSMStatis
     else:
         logger.debug(f'[set_yesterday_statistic_period] {message.from_user.id} - statistic: {result}')
         await message.answer(
-            f"За вчерашниЙ день ты потратил: {get_statistic_message(result)}",
+            f"За вчерашниЙ день {get_statistic_message(result)}",
             reply_markup=client_keyboard
         )
     finally:
