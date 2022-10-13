@@ -31,6 +31,8 @@ https://t.me/RubTengeBot
 
 **DB_URL** - url базы данных
 
+**EXCHANGE_RATE_URL** - url api курса валют
+
 
 
 `pip install -r requirements.txt`
