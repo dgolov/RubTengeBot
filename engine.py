@@ -1,3 +1,4 @@
+import os
 import re
 
 from datetime import datetime, timedelta
@@ -66,7 +67,8 @@ class EngineSessionFactory:
             category_id=category.id,
             sum_rub=data.get('sum_rub'),
             sum_tng=data.get('sum_tng'),
-            date=datetime.utcnow() + timedelta(hours=6)
+            date=datetime.utcnow() + timedelta(hours=6),
+            test=True if int(os.environ.get('DEBUG')) else False
         )
         with self.session() as session:
             try:
@@ -101,11 +103,16 @@ class EngineSessionFactory:
             for category in categories:
                 categories_dict[category.id] = category.name
 
+            cost_query = session.query(Cost).filter_by(user_id=user.id)
+
+            if not int(os.environ.get('DEBUG')):
+                print(1)
+                cost_query = cost_query.filter_by(test=False)
+
             if period:
-                cost_query = session.query(Cost).filter_by(user_id=user.id).\
-                    filter(Cost.date >= period.get('start'), Cost.date <= period.get('end')).all()
+                cost_query = cost_query.filter(Cost.date >= period.get('start'), Cost.date <= period.get('end')).all()
             else:
-                cost_query = session.query(Cost).filter_by(user_id=user.id).all()
+                cost_query = cost_query.all()
             for cost in cost_query:
                 statistics['total']['tng_sum'] += cost.sum_tng
                 statistics['total']['rub_sum'] += cost.sum_rub
