@@ -1,5 +1,5 @@
 # coding: utf-8
-from sqlalchemy import Column, ForeignKey, String, Integer, DateTime
+from sqlalchemy import Column, ForeignKey, String, Integer, DateTime, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 
 
@@ -32,6 +32,7 @@ class Cost(Base):
     sum_rub = Column(Integer)
     sum_tng = Column(Integer)
     date = Column(DateTime)
+    test = Column(Boolean)
 
 
 class Answer(Base):
