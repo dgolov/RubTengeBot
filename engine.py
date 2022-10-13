@@ -106,7 +106,6 @@ class EngineSessionFactory:
             cost_query = session.query(Cost).filter_by(user_id=user.id)
 
             if not int(os.environ.get('DEBUG')):
-                print(1)
                 cost_query = cost_query.filter_by(test=False)
 
             if period:
