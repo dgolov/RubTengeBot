@@ -15,6 +15,7 @@ def check_reset(func):
     async def wrapper(message: types.Message, state: FSMContext):
         if any(command in message.text for command in ('Ввод_расходов', 'start', 'help')):
             await message.answer('Действие отменено', reply_markup=client_keyboard)
+            logger.info(f'[client - check_reset] {message.from_user.id} - bot - message: Действие отменено')
             return await reset_state(message, state)
         else:
             return await func(message, state)
@@ -24,11 +25,15 @@ def check_reset(func):
 async def reset_state(message: types.Message, state: FSMContext):
     """ Сброс состояния при вооде команд с клавиатуры """
     if any(command in message.text for command in ('Ввод_расходов', 'Статистика')):
-        logger.debug(f'[reset_state] {message.from_user.id} - {message.from_user.username} - reset set_expend')
+        logger.debug(
+            f'[client - reset_state] {message.from_user.id} - {message.from_user.username} - reset set_expend'
+        )
         await state.finish()
-        return await set_expense(message)
+        return await set_expense(message, state)
     else:
-        logger.debug(f'[reset_state] {message.from_user.id} - {message.from_user.username} - reset send_welcome')
+        logger.debug(
+            f'[client - reset_state] {message.from_user.id} - {message.from_user.username} - reset send_welcome'
+        )
         await state.finish()
         return await send_welcome(message)
 
@@ -42,9 +47,11 @@ async def send_welcome(message: types.Message):
     if not user:
         db_engine.create_new_user(message)
 
-    logger.info(f'[send_welcome] {message.from_user.id} - {message.from_user.username} - message: {message.text}')
+    logger.info(
+        f'[client - send_welcome] {message.from_user.id} - {message.from_user.username} - message: {message.text}'
+    )
     await message.reply(
-        "Привет 👋\nЯ бот учета рассходов в республике Казахстане. Введи ссумму в тенге и я переведу ее в рубли. "
+        "Привет 👋\nЯ бот учета рассходов в республике Казахстан. Введи ссумму в тенге и я переведу ее в рубли. "
         "\nЯ конвертирую валюту по официальному курсу, сорян, я не знаю почем ты меняешь налик..."
         "\nТак же ты можешь воспользоваться командами с клавиатуры для записи расходов и вывода статистики. 👇👇👇"
         "\n🇰🇿 Алға Қазақстан! 🇰🇿",
@@ -54,7 +61,9 @@ async def send_welcome(message: types.Message):
 
 async def set_expense(message: types.Message, state: FSMContext):
     """ Convert rub to tng. State set sum """
-    logger.info(f'[set_expense] {message.from_user.id} - {message.from_user.username} - message: {message.text}')
+    logger.info(
+        f'[client - set_expense] {message.from_user.id} - {message.from_user.username} - message: {message.text}'
+    )
     async with state.proxy() as data:
         data[message.from_user.id] = {}
     await FSMExpend.sum.set()
@@ -79,13 +88,18 @@ async def cancel_handler(message: types.Message, state: FSMContext):
 @check_reset
 async def convert_expense(message: types.Message, state: FSMContext):
     """ Convert rub to tng. State convert """
-    logger.info(f'[convert_expense] {message.from_user.id} - {message.from_user.username} - message: {message.text}')
+    logger.info(
+        f'[client - convert_expense] {message.from_user.id} - {message.from_user.username} - message: {message.text}'
+    )
     move_on = True
     rub, tng, answer = await get_rub_expand(message.text)
     if not answer:
-        logger.warning(f'[set_expense] {message.from_user.id} - {message.from_user.username} - convert exception')
+        logger.warning(
+            f'[client - convert_expense] {message.from_user.id} - {message.from_user.username} - convert exception'
+        )
         move_on = False
         answer = 'Ошибка конвертации. Похоже ты не указал сумму.'
+        logger.info(f'[client - convert_expense] {message.from_user.id} - bot - message: {answer}')
     await message.answer(answer)
     if move_on:
         async with state.proxy() as data:
@@ -97,7 +111,9 @@ async def convert_expense(message: types.Message, state: FSMContext):
 
 @check_reset
 async def how_handler_sum(message: types.Message, state: FSMContext):
-    logger.info(f'[how_handler_sum] {message.from_user.id} - {message.from_user.username} - message: {message.text}')
+    logger.info(
+        f'[client - how_handler_sum] {message.from_user.id} - {message.from_user.username} - message: {message.text}'
+    )
 
     async with state.proxy() as data:
         if not data[message.from_user.id].get('sum_rub', None):
@@ -105,7 +121,7 @@ async def how_handler_sum(message: types.Message, state: FSMContext):
         else:
             data[message.from_user.id]['sum_rub'] += 1
         logger.info(
-            f"[how_handler_sum] {message.from_user.id} - {message.from_user.username} - "
+            f"[client - how_handler_sum] {message.from_user.id} - {message.from_user.username} - "
             f"retry {data[message.from_user.id]['sum_rub']}")
 
         if data[message.from_user.id]['sum_rub'] == 3:
@@ -119,23 +135,27 @@ async def how_handler_sum(message: types.Message, state: FSMContext):
         2: 'Просто набери цифры и все...',
         3: 'Давай попробуем в другой раз',
     }
-    await message.answer(message_dict.get(data[message.from_user.id]['sum_rub']), reply_markup=keyboard)
+    answer = message_dict.get(data[message.from_user.id]['sum_rub'])
+    await message.answer(answer, reply_markup=keyboard)
+    logger.info(f'[client - how_handler_sum] {message.from_user.id} - bot - message: {answer}')
 
 
 @check_reset
 async def set_category(message: types.Message, state: FSMContext):
     """ Convert rub to tng. State set category """
-    logger.info(f'[set_category] {message.from_user.id} - {message.from_user.username} - message: {message.text}')
+    logger.info(
+        f'[client - set_category] {message.from_user.id} - {message.from_user.username} - message: {message.text}'
+    )
     async with state.proxy() as data:
         data[message.from_user.id]['category'] = message.text
     await state.finish()
     try:
         await set_cost(message.from_user.id, data[message.from_user.id])
-        await message.answer(
-            f"✅ {data[message.from_user.id]['sum_rub']} руб внесено в базу твоих расходов ✅",
-            reply_markup=client_keyboard)
+        answer = f"✅ {data[message.from_user.id]['sum_rub']} руб внесено в базу твоих расходов ✅"
+        await message.answer(answer, reply_markup=client_keyboard)
+        logger.info(f'[client - set_category] {message.from_user.id} - bot - message: {answer}')
     except Exception as e:
-        logger.info(f'[set_category_call] {message.from_user.id} - {message.from_user.username} - Error: {e}')
+        logger.error(f'[client - set_category_call] {message.from_user.id} - {message.from_user.username} - Error: {e}')
         await message.answer('Ошибка внесения расходов в базу данных... Сорян(', reply_markup=client_keyboard)
 
 
@@ -143,19 +163,21 @@ async def set_category(message: types.Message, state: FSMContext):
 async def set_category_call(callback: types.CallbackQuery, state: FSMContext):
     """ Convert rub to tng. State set category callback """
     logger.info(
-        f'[set_category_call] {callback.from_user.id} - {callback.from_user.username} - message: {callback.data}'
+        f'[client - set_category_call] {callback.from_user.id} - {callback.from_user.username} - '
+        f'message: {callback.data}'
     )
     async with state.proxy() as data:
         data[callback.from_user.id]['category'] = callback.data
     await state.finish()
     try:
         await set_cost(callback.from_user.id, data[callback.from_user.id])
-        await callback.message.answer(
-            f"✅ {data[callback.from_user.id]['sum_rub']} руб внесено в базу твоих расходов ✅",
-            reply_markup=client_keyboard
-        )
+        answer = f"✅ {data[callback.from_user.id]['sum_rub']} руб внесено в базу твоих расходов ✅"
+        await callback.message.answer(answer, reply_markup=client_keyboard)
+        logger.info(f'[client - set_category_call] {callback.from_user.id} - bot - message: {answer}')
     except Exception as e:
-        logger.info(f'[set_category_call] {callback.from_user.id} - {callback.from_user.username} - Error: {e}')
+        logger.info(
+            f'[client - set_category_call] {callback.from_user.id} - {callback.from_user.username} - Error: {e}'
+        )
         await callback.message.answer('Ошибка внесения расходов в базу данных... Сорян(', reply_markup=client_keyboard)
 
 
@@ -163,14 +185,16 @@ async def set_cost(user_id, data):
     """ Save storage to database """
     try:
         db_engine.set_cost(user_id, data)
-        logger.info(f'[set_cost] {user_id} - data saved successfully')
+        logger.info(f'[client - set_cost] {user_id} - data saved successfully')
     except Exception as e:
-        logger.info(f'[set_cost] {user_id} - data saved failed. Error: {e}')
+        logger.info(f'[client - set_cost] {user_id} - data saved failed. Error: {e}')
 
 
 async def get_statistic(message: types.Message):
     """ Получение статистики расходов. Переключение на состояние выбора периода """
-    logger.info(f'[get_statistic] {message.from_user.id} - {message.from_user.username} - message: {message.text}')
+    logger.info(
+        f'[client - get_statistic] {message.from_user.id} - {message.from_user.username} - message: {message.text}'
+    )
     await FSMStatistic.start.set()
     await message.answer(f"Укажи период", reply_markup=statistic_keyboard)
 
@@ -178,42 +202,31 @@ async def get_statistic(message: types.Message):
 async def set_all_statistic_period(message: types.Message, state=FSMStatistic.start):
     """ Получение всей статистики """
     logger.info(
-        f'[set_all_statistic_period] {message.from_user.id} - {message.from_user.username} - message: {message.text}'
+        f'[client - set_all_statistic_period] {message.from_user.id} - {message.from_user.username} - '
+        f'message: {message.text}'
     )
     result = db_engine.get_statistics(telegram_user_id=message.from_user.id)
-    logger.debug(f'[set_all_statistic_period] {message.from_user.id} - statistic: {result}')
+    logger.debug(f'[client - set_all_statistic_period] {message.from_user.id} - statistic: {result}')
     await state.finish()
-    await message.answer(
-        f"За все время: {get_statistic_message(result)}",
-        reply_markup=client_keyboard
-    )
+    answer = f"За все время: {get_statistic_message(result)}"
+    await message.answer(answer, reply_markup=client_keyboard)
+    logger.info(f'[client - set_all_statistic_period] {message.from_user.id} - bot - message: {answer}')
 
 
 async def set_month_statistic_period(message: types.Message, state=FSMStatistic.start):
     """ Получение статистики за месяц """
     logger.info(
-        f'[set_month_statistic_period] {message.from_user.id} - {message.from_user.username} - message: {message.text}'
+        f'[client - set_month_statistic_period] {message.from_user.id} - {message.from_user.username} - '
+        f'message: {message.text}'
     )
     today = datetime.utcnow() + timedelta(hours=6)
     start = datetime.utcnow() + timedelta(hours=6) - timedelta(days=today.day - 1)
     period = {
         'start': start.date(),
         'end': today,
+        'message': 'За текуший месяц'
     }
-
-    try:
-        result = db_engine.get_statistics(telegram_user_id=message.from_user.id, period=period)
-    except Exception as e:
-        logger.error(f'[set_day_statistic_period] {message.from_user.id} - error: {e}')
-        await message.answer(f"Ошибка получении статистики", reply_markup=client_keyboard)
-    else:
-        logger.debug(f'[set_month_statistic_period] {message.from_user.id} - statistic: {result}')
-        await message.answer(
-            f"За текуший месяц {get_statistic_message(result)}",
-            reply_markup=client_keyboard
-        )
-    finally:
-        await state.finish()
+    await get_statistics(message, period, state)
 
 
 async def set_week_statistic_period(message: types.Message, state=FSMStatistic.start):
@@ -225,22 +238,10 @@ async def set_week_statistic_period(message: types.Message, state=FSMStatistic.s
     start = datetime.utcnow() + timedelta(hours=6) - timedelta(days=today.weekday())
     period = {
         'start': start.date(),
-        'end': today
+        'end': today,
+        'message': 'За текушую неделю'
     }
-
-    try:
-        result = db_engine.get_statistics(telegram_user_id=message.from_user.id, period=period)
-    except Exception as e:
-        logger.error(f'[set_day_statistic_period] {message.from_user.id} - error: {e}')
-        await message.answer(f"Ошибка получении статистики", reply_markup=client_keyboard)
-    else:
-        logger.debug(f'[set_week_statistic_period] {message.from_user.id} - statistic: {result}')
-        await message.answer(
-            f"За текушую неделю {get_statistic_message(result)}",
-            reply_markup=client_keyboard
-        )
-    finally:
-        await state.finish()
+    await get_statistics(message, period, state)
 
 
 async def set_today_statistic_period(message: types.Message, state=FSMStatistic.start):
@@ -252,21 +253,9 @@ async def set_today_statistic_period(message: types.Message, state=FSMStatistic.
     period = {
         'start': today.date(),
         'end': today,
+        'message': 'За текуший день'
     }
-    logger.debug(f'[set_today_statistic_period] {message.from_user.id} - period: {period}')
-    try:
-        result = db_engine.get_statistics(telegram_user_id=message.from_user.id, period=period)
-    except Exception as e:
-        logger.error(f'[set_today_statistic_period] {message.from_user.id} - error: {e}')
-        await message.answer(f"Ошибка получении статистики", reply_markup=client_keyboard)
-    else:
-        logger.debug(f'[set_today_statistic_period] {message.from_user.id} - statistic: {result}')
-        await message.answer(
-            f"За текуший день {get_statistic_message(result)}",
-            reply_markup=client_keyboard
-        )
-    finally:
-        await state.finish()
+    await get_statistics(message, period, state)
 
 
 async def set_yesterday_statistic_period(message: types.Message, state=FSMStatistic.start):
@@ -280,20 +269,23 @@ async def set_yesterday_statistic_period(message: types.Message, state=FSMStatis
     period = {
         'start': start.date(),
         'end': today,
+        'message': 'За вчерашниЙ день'
     }
+    await get_statistics(message, period, state)
 
-    logger.debug(f'[set_yesterday_statistic_period] {message.from_user.id} - period: {period}')
+
+async def get_statistics(message, period, state):
+    """ Формирование сообщения статистики """
+    logger.debug(f'[client - get_statistics] {message.from_user.id} - period: {period}')
     try:
         result = db_engine.get_statistics(telegram_user_id=message.from_user.id, period=period)
     except Exception as e:
-        logger.error(f'[set_yesterday_statistic_period] {message.from_user.id} - error: {e}')
+        logger.error(f'[client - get_statistics] {message.from_user.id} - error: {e}')
         await message.answer(f"Ошибка получении статистики", reply_markup=client_keyboard)
     else:
-        logger.debug(f'[set_yesterday_statistic_period] {message.from_user.id} - statistic: {result}')
-        await message.answer(
-            f"За вчерашниЙ день {get_statistic_message(result)}",
-            reply_markup=client_keyboard
-        )
+        logger.debug(f'[client - get_statistics] {message.from_user.id} - statistic: {result}')
+        answer = f"{period.get('message')} {get_statistic_message(result)}"
+        await message.answer(answer, reply_markup=client_keyboard)
     finally:
         await state.finish()
 
