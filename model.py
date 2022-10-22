@@ -1,5 +1,5 @@
 # coding: utf-8
-from sqlalchemy import Column, ForeignKey, String, Integer, DateTime, Boolean
+from sqlalchemy import Column, ForeignKey, String, Integer, DateTime, Boolean, Float
 from sqlalchemy.ext.declarative import declarative_base
 
 
@@ -29,8 +29,8 @@ class Cost(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(Integer, ForeignKey('user.id'))
     category_id = Column(Integer, ForeignKey('category.id'))
-    sum_rub = Column(Integer)
-    sum_tng = Column(Integer)
+    sum_rub = Column(Float)
+    sum_tng = Column(Float)
     date = Column(DateTime)
     test = Column(Boolean)
 
