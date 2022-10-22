@@ -18,6 +18,7 @@ https://t.me/RubTengeBot
 - Pytest
 - SQLAlchemy
 - Postgres
+- Docker
 
 ### Запуск бота
 
