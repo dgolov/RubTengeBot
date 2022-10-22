@@ -103,7 +103,8 @@ def get_statistic_message(result):
     """ Формирование сообщения статистики """
     tng = result.get('total')['tng_sum']
     rub = result.get('total')['rub_sum']
-    message = f"ты потратил: \n{tng} тенге\n{rub} рублей\n" if tng or rub else f"ты ничего не потратил"
+    message = f"ты потратил: \n{round(tng, 2)} тенге\n{round(rub, 2)} рублей\n" if tng or rub \
+        else f"ты ничего не потратил"
 
     if result['categories']:
         message += "\n💰 💰 💰 💰 Категории:\n"
