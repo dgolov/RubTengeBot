@@ -1,0 +1,10 @@
+Dockerfile
+/README.md
+/.gitignore
+/.dockerignore
+/.idea/
+/.git/
+/.gitmodules
+/env
+/venv
+/__pycache__
